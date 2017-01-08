@@ -1,5 +1,5 @@
 {
-    "name": "api-platform/core",
+    "name": "20steps/bricks-core",
     "type": "library",
     "description": "The ultimate solution to create web APIs.",
     "keywords": ["REST", "API", "JSON", "JSON-LD", "Hydra", "Swagger", "HAL"],
