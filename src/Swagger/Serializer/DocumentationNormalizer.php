@@ -104,6 +104,11 @@ final class DocumentationNormalizer implements NormalizerInterface
 
         foreach ($operations as $operationName => $operation) {
             $path = $this->getPath($resourceShortName, $operation, $collection);
+            // Dirty hack - use parameter
+	        $prefix = '/bricks/api/rest';
+	        if (substr($path, 0, strlen($prefix)) == $prefix) {
+		        $path = substr($path, strlen($prefix));
+	        }
             $method = $collection ? $this->operationMethodResolver->getCollectionOperationMethod($resourceClass, $operationName) : $this->operationMethodResolver->getItemOperationMethod($resourceClass, $operationName);
 
             $paths[$path][strtolower($method)] = $this->getPathOperation($operationName, $operation, $method, $collection, $resourceClass, $resourceMetadata, $mimeTypes, $definitions);
