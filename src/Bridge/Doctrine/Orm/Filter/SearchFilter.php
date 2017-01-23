@@ -78,14 +78,34 @@ class SearchFilter extends AbstractFilter
         }
 
         foreach ($properties as $property => $strategy) {
+        	if ($this->isPropertyEmbedded(($property))) {
+		        $propertyParts = $this->splitEmbeddedPropertyParts($property);
+		        $typeOfField = 'string';
+		        $strategy = $this->properties[$property] ?? self::STRATEGY_EXACT;
+		        $filterParameterNames = [$property];
+		
+		        if (self::STRATEGY_EXACT === $strategy) {
+			        $filterParameterNames[] = $property.'[]';
+		        }
+		
+		        foreach ($filterParameterNames as $filterParameterName) {
+			        $description[$filterParameterName] = [
+				        'property' => $property,
+				        'type' => $typeOfField,
+				        'required' => false,
+				        'strategy' => $strategy,
+			        ];
+		        }
+		        continue;
+	        }
             if (!$this->isPropertyMapped($property, $resourceClass, true)) {
                 continue;
             }
 
             if ($this->isPropertyNested($property)) {
-                $propertyParts = $this->splitPropertyParts($property);
-                $field = $propertyParts['field'];
-                $metadata = $this->getNestedMetadata($resourceClass, $propertyParts['associations']);
+	            $propertyParts = $this->splitPropertyParts($property);
+	            $field = $propertyParts['field'];
+	            $metadata = $this->getNestedMetadata($resourceClass, $propertyParts['associations']);
             } else {
                 $field = $property;
                 $metadata = $this->getClassMetadata($resourceClass);
@@ -177,25 +197,57 @@ class SearchFilter extends AbstractFilter
 
         $alias = 'o';
         $field = $property;
-
+	
+	    $values = $this->normalizeValues((array) $value);
+	    if (empty($values)) {
+		    $this->logger->notice('Invalid filter ignored', [
+			    'exception' => new InvalidArgumentException(sprintf('At least one value is required, multiple values should be in "%1$s[]=firstvalue&%1$s[]=secondvalue" format', $property)),
+		    ]);
+		
+		    return;
+	    }
+	    $caseSensitive = true;
+	    
+	    if ($this->isPropertyEmbedded($property)) {
+		    $strategy = $this->properties[$property] ?? self::STRATEGY_EXACT;
+		    
+		    $field = str_replace(':','.',$field);
+		
+		    // prefixing the strategy with i makes it case insensitive
+		    if (strpos($strategy, 'i') === 0) {
+			    $strategy = substr($strategy, 1);
+			    $caseSensitive = false;
+		    }
+		
+		    if (1 === count($values)) {
+			    $this->addWhereByStrategy($strategy, $queryBuilder, $queryNameGenerator, $alias, $field, $values[0], $caseSensitive);
+			
+			    return;
+		    }
+		
+		    if (self::STRATEGY_EXACT !== $strategy) {
+			    $this->logger->notice('Invalid filter ignored', [
+				    'exception' => new InvalidArgumentException(sprintf('"%s" strategy selected for "%s" property, but only "%s" strategy supports multiple values', $strategy, $property, self::STRATEGY_EXACT)),
+			    ]);
+			
+			    return;
+		    }
+		
+		    $wrapCase = $this->createWrapCase($caseSensitive);
+		    $valueParameter = $queryNameGenerator->generateParameterName($field);
+		
+		    $queryBuilder
+			    ->andWhere(sprintf($wrapCase('%s.%s').' IN (:%s)', $alias, $field, $valueParameter))
+			    ->setParameter($valueParameter, $caseSensitive ? $values : array_map('strtolower', $values));
+		    die;
+		    return;
+        }
         if ($this->isPropertyNested($property)) {
-            list($alias, $field, $associations) = $this->addJoinsForNestedProperty($property, $alias, $queryBuilder, $queryNameGenerator);
+	        list($alias, $field, $associations) = $this->addJoinsForNestedProperty($property, $alias, $queryBuilder, $queryNameGenerator);
             $metadata = $this->getNestedMetadata($resourceClass, $associations);
         } else {
             $metadata = $this->getClassMetadata($resourceClass);
         }
-
-        $values = $this->normalizeValues((array) $value);
-
-        if (empty($values)) {
-            $this->logger->notice('Invalid filter ignored', [
-                'exception' => new InvalidArgumentException(sprintf('At least one value is required, multiple values should be in "%1$s[]=firstvalue&%1$s[]=secondvalue" format', $property)),
-            ]);
-
-            return;
-        }
-
-        $caseSensitive = true;
 
         if ($metadata->hasField($field)) {
             if ('id' === $field) {
@@ -270,8 +322,8 @@ class SearchFilter extends AbstractFilter
      */
     protected function addWhereByStrategy(string $strategy, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $alias, string $field, string $value, bool $caseSensitive)
     {
-        $wrapCase = $this->createWrapCase($caseSensitive);
-        $valueParameter = $queryNameGenerator->generateParameterName($field);
+	    $wrapCase = $this->createWrapCase($caseSensitive);
+        $valueParameter = str_replace('.','_',$queryNameGenerator->generateParameterName($field));
 
         switch ($strategy) {
             case null:

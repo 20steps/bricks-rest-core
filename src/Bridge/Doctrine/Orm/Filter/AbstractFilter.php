@@ -99,7 +99,7 @@ abstract class AbstractFilter implements FilterInterface
     {
         if (null === $this->properties) {
             // to ensure sanity, nested properties must still be explicitly enabled
-            return !$this->isPropertyNested($property);
+            return !$this->isPropertyNested($property) && !$this->isPropertyEmbedded($property);
         }
 
         return array_key_exists($property, $this->properties);
@@ -117,9 +117,11 @@ abstract class AbstractFilter implements FilterInterface
     protected function isPropertyMapped(string $property, string $resourceClass, bool $allowAssociation = false): bool
     {
         if ($this->isPropertyNested($property)) {
-            $propertyParts = $this->splitPropertyParts($property);
-            $metadata = $this->getNestedMetadata($resourceClass, $propertyParts['associations']);
-            $property = $propertyParts['field'];
+	        $propertyParts = $this->splitPropertyParts($property);
+	        $metadata = $this->getNestedMetadata($resourceClass, $propertyParts['associations']);
+	        $property = $propertyParts['field'];
+        } else if ($this->isPropertyEmbedded($property)) {
+        	return true;
         } else {
             $metadata = $this->getClassMetadata($resourceClass);
         }
@@ -138,6 +140,18 @@ abstract class AbstractFilter implements FilterInterface
     {
         return false !== strpos($property, '.');
     }
+	
+	/**
+	 * Determines whether the given property is embedded.
+	 *
+	 * @param string $property
+	 *
+	 * @return bool
+	 */
+	protected function isPropertyEmbedded(string $property): bool
+	{
+		return false !== strpos($property, ':');
+	}
 
     /**
      * Gets nested class metadata for the given resource.
@@ -185,6 +199,27 @@ abstract class AbstractFilter implements FilterInterface
             'field' => end($parts),
         ];
     }
+	
+	/**
+	 * Splits the given property into parts.
+	 *
+	 * Returns an array with the following keys:
+	 *   - associations: array of associations according to nesting order
+	 *   - field: string holding the actual field (leaf node)
+	 *
+	 * @param string $property
+	 *
+	 * @return array
+	 */
+	protected function splitEmbeddedPropertyParts(string $property): array
+	{
+		$parts = explode(':', $property);
+		
+		return [
+			'associations' => array_slice($parts, 0, -1),
+			'field' => end($parts),
+		];
+	}
 
     /**
      * Extracts properties to filter from the request.

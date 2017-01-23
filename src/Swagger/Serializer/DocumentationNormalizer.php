@@ -105,7 +105,7 @@ final class DocumentationNormalizer implements NormalizerInterface
         foreach ($operations as $operationName => $operation) {
             $path = $this->getPath($resourceShortName, $operation, $collection);
             // Dirty hack - use parameter
-	        $prefix = '/bricks/api/rest';
+	        $prefix = '/bricks/api/v1.0';
 	        if (substr($path, 0, strlen($prefix)) == $prefix) {
 		        $path = substr($path, strlen($prefix));
 	        }
@@ -266,6 +266,7 @@ final class DocumentationNormalizer implements NormalizerInterface
             '404' => ['description' => 'Resource not found'],
         ];
 
+        
         return $pathOperation;
     }
 
@@ -357,7 +358,7 @@ final class DocumentationNormalizer implements NormalizerInterface
             $definitionKey = $resourceMetadata->getShortName();
         }
         $definitions[$definitionKey] = $this->getDefinitionSchema($resourceClass, $resourceMetadata, $serializerContext, $definitionKey);
-
+	    
         return $definitionKey;
     }
 
