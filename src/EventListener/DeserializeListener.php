@@ -62,7 +62,7 @@ final class DeserializeListener
         if (null !== $data) {
             $context['object_to_populate'] = $data;
         }
-
+        
         $request->attributes->set(
             'data',
             $this->serializer->deserialize(

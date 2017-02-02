@@ -64,7 +64,7 @@ final class WriteListener
                 $event->setControllerResult(null);
                 break;
         }
-
+	    
         $objectManager->flush();
     }
 

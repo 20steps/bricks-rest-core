@@ -67,17 +67,25 @@ final class Router implements RouterInterface, UrlGeneratorInterface
     public function match($pathInfo)
     {
         $baseContext = $this->router->getContext();
-        $pathInfo = str_replace($baseContext->getBaseUrl(), '', $pathInfo);
-
+	    $pathInfo = str_replace($baseContext->getBaseUrl(), '', $pathInfo);
         $request = Request::create($pathInfo);
         $context = (new RequestContext())->fromRequest($request);
-        $context->setPathInfo($pathInfo);
+	    switch($baseContext->getMethod()) {
+		    case 'PUT':
+		    case 'DELETE':
+		    case 'POST':
+		    	$pathInfo=preg_replace('$/bricks/api/v1.0/([^/]+)/(.*)$','/bricks/api/v1.0/$1/authenticated/$2',$pathInfo);
+		    	break;
+		
+	    }
+	    $context->setPathInfo($pathInfo);
         $context->setScheme($baseContext->getScheme());
-
+        $context->setMethod($baseContext->getMethod());
+        $context->setHost($baseContext->getHost());
         try {
             $this->router->setContext($context);
 
-            return $this->router->match($request->getPathInfo());
+            return $this->router->match($pathInfo);
         } finally {
             $this->router->setContext($baseContext);
         }

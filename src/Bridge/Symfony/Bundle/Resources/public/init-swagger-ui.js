@@ -5,6 +5,7 @@ $(function () {
         spec: data.spec,
         dom_id: 'swagger-ui-container',
         supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
+        validatorUrl: null,
         onComplete: function() {
             $('pre code').each(function(i, e) {
                 hljs.highlightBlock(e)
