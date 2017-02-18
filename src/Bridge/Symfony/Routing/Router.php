@@ -74,13 +74,13 @@ final class Router implements RouterInterface, UrlGeneratorInterface
 		    case 'PUT':
 		    case 'DELETE':
 		    case 'POST':
-		    	$pathInfo=preg_replace('$/bricks/api/v1.0/([^/]+)/(.*)$','/bricks/api/v1.0/$1/authenticated/$2',$pathInfo);
+		    	//$pathInfo=preg_replace('$/bricks/api/v1.0/([^/]+)/(.*)$','/bricks/api/v1.0/$1/authenticated/$2',$pathInfo);
 		    	break;
-		
 	    }
+	    
 	    $context->setPathInfo($pathInfo);
         $context->setScheme($baseContext->getScheme());
-        $context->setMethod($baseContext->getMethod());
+        //$context->setMethod($baseContext->getMethod());
         $context->setHost($baseContext->getHost());
         try {
             $this->router->setContext($context);
