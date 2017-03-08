@@ -198,7 +198,12 @@ class SearchFilter extends AbstractFilter
         $alias = 'o';
         $field = $property;
 	
-	    $values = $this->normalizeValues((array) $value);
+        if ($property=='id') {
+        	$values = explode(',',$value);
+        } else {
+	        $values = $this->normalizeValues((array) $value);
+        }
+        
 	    if (empty($values)) {
 		    $this->logger->notice('Invalid filter ignored', [
 			    'exception' => new InvalidArgumentException(sprintf('At least one value is required, multiple values should be in "%1$s[]=firstvalue&%1$s[]=secondvalue" format', $property)),
