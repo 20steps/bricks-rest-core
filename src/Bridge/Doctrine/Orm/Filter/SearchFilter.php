@@ -198,7 +198,7 @@ class SearchFilter extends AbstractFilter
         $alias = 'o';
         $field = $property;
 	
-        if ($property=='id') {
+        if ($property=='id' && !is_array($value)) {
         	$values = explode(',',$value);
         } else {
 	        $values = $this->normalizeValues((array) $value);
