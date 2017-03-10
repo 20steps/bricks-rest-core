@@ -65,6 +65,9 @@ final class IriConverter implements IriConverterInterface
             throw new InvalidArgumentException(sprintf('No resource associated to "%s".', $iri));
         }
 
+        if ($parameters['id']=='null') {
+        	return null;
+        }
         if ($item = $this->itemDataProvider->getItem($parameters['_api_resource_class'], $parameters['id'], null, $context)) {
             return $item;
         }
