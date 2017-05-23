@@ -78,25 +78,35 @@ final class IriConverter implements IriConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function getIriFromItem($item, int $referenceType = UrlGeneratorInterface::ABS_PATH): string
+    public function getIriFromItem($item, int $referenceType = UrlGeneratorInterface::ABS_PATH, $context = []): string
     {
+	    
         $resourceClass = $this->getObjectClass($item);
         $routeName = $this->routeNameResolver->getRouteName($resourceClass, false);
 
         $identifiers = $this->generateIdentifiersUrl($this->getIdentifiersFromItem($item));
 
-        return $this->router->generate($routeName, ['id' => implode(';', $identifiers)], $referenceType);
+        $parameters = ['id' => implode(';', $identifiers)];
+	    if (isset($context['_bricks']) && isset($context['_bricks']['project'])) {
+		    $parameters['project']=$context['_bricks']['project'];
+	    }
+
+        return $this->router->generate($routeName, $parameters, $referenceType);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getIriFromResourceClass(string $resourceClass, int $referenceType = UrlGeneratorInterface::ABS_PATH): string
+    public function getIriFromResourceClass(string $resourceClass, int $referenceType = UrlGeneratorInterface::ABS_PATH, $context = []): string
     {
         try {
-            return $this->router->generate($this->routeNameResolver->getRouteName($resourceClass, true), [], $referenceType);
+        	$parameters = [];
+	        if (isset($context['_bricks']) && isset($context['_bricks']['project'])) {
+	        	$parameters['project']=$context['_bricks']['project'];
+	        }
+            return $this->router->generate($this->routeNameResolver->getRouteName($resourceClass, true), $parameters, $referenceType);
         } catch (RoutingExceptionInterface $e) {
-            throw new InvalidArgumentException(sprintf('Unable to generate an IRI for "%s".', $resourceClass), $e->getCode(), $e);
+	        throw new InvalidArgumentException(sprintf('Unable to generate an IRI for "%s".', $resourceClass), $e->getCode(), $e);
         }
     }
 

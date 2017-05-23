@@ -23,6 +23,7 @@ use ApiPlatform\Core\Serializer\ContextTrait;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
+use ApiPlatform\Core\Api\UrlGeneratorInterface;
 
 /**
  * Converts between objects and array including JSON-LD and Hydra metadata.
@@ -69,7 +70,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
             return $rawData;
         }
 
-        $data['@id'] = $this->iriConverter->getIriFromItem($object);
+        $data['@id'] = $this->iriConverter->getIriFromItem($object, UrlGeneratorInterface::ABS_PATH, $context);
         $data['@type'] = $resourceMetadata->getIri() ?: $resourceMetadata->getShortName();
 
         return $data + $rawData;

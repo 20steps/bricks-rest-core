@@ -55,6 +55,11 @@ final class RequestAttributesExtractor
         } else {
             throw new RuntimeException('One of the request attribute "_api_collection_operation_name" or "_api_item_operation_name" must be defined.');
         }
+        
+        $bricks = $request->attributes->get('_bricks',null);
+        if ($bricks) {
+	        $result['_bricks']=$bricks;
+        }
 
         return $result;
     }

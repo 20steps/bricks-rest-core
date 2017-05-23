@@ -57,7 +57,7 @@ final class SerializeListener
 
             return;
         }
-
+        
         $context = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
         $request->attributes->set('_api_respond', true);
 

@@ -16,6 +16,7 @@ use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\DataProvider\PaginatorInterface;
 use ApiPlatform\Core\JsonLd\ContextBuilderInterface;
 use ApiPlatform\Core\JsonLd\Serializer\JsonLdContextTrait;
+use ApiPlatform\Core\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\Serializer\ContextTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
@@ -71,8 +72,8 @@ final class CollectionNormalizer implements NormalizerInterface, NormalizerAware
         $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class'] ?? null, true);
         $data = $this->addJsonLdContext($this->contextBuilder, $resourceClass, $context);
         $context = $this->initContext($resourceClass, $context);
-
-        $data['@id'] = $this->iriConverter->getIriFromResourceClass($resourceClass);
+	    
+        $data['@id'] = $this->iriConverter->getIriFromResourceClass($resourceClass,UrlGeneratorInterface::ABS_PATH,$context);
         $data['@type'] = 'hydra:Collection';
 
         $data['hydra:member'] = [];
